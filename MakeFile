@@ -1,0 +1,7 @@
+all: built run
+
+built:
+	g++ -I./include ./src/main.cpp ./src/DLList.cpp -o main
+
+run:
+	./main
