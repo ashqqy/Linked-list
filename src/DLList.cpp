@@ -19,14 +19,15 @@ dllist_error_t InsertAfter (dllist_t* dllist, list_elem_t insert_elem)
 {
     assert (dllist != NULL);
 
-    if (dllist->head < LIST_SIZE - 1)   
+    if (dllist->head < LIST_SIZE)   
     {
         dllist->dllist_data[dllist->head] = insert_elem;
+        dllist->head += 1;
     }
-    else if (dllist->tail != 0)
-    {
-        dllist->head = 0;
-        dllist->dllist_data[dllist->head] = insert_elem;
+    else if (dllist->tail != 0 && (dllist->head % LIST_SIZE < dllist->tail))
+    {  
+        dllist->dllist_data[dllist->head % LIST_SIZE] = insert_elem;
+        dllist->head += 1;
     }
     else
     {
@@ -51,8 +52,8 @@ void DLListDump (dllist_t* dllist)
 {
     assert (dllist != NULL);
 
-    printf ("head = [%d]", dllist->head);
-    printf ("tail = [%d]", dllist->tail);
+    printf ("head = [%d]\n", dllist->head);
+    printf ("tail = [%d]\n", dllist->tail);
 
     for (int i = 0; i < LIST_SIZE; ++i)
         printf ("data[%d] = [%d];\n", i, dllist->dllist_data[i]);

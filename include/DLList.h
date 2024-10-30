@@ -16,8 +16,8 @@ struct dllist_t
 
 enum dllist_error_t
 {
-    OK,
-    LIST_OVERFLOW
+    OK = 0,
+    LIST_OVERFLOW = 100
 };
 
 //-------------------------------------------------
