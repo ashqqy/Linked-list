@@ -14,6 +14,8 @@ struct dllist_t
     int next[LIST_SIZE + 1];
     int prev[LIST_SIZE + 1];
     int free;
+    int head;
+    int tail;
 };
 
 enum dllist_error_t

@@ -17,11 +17,8 @@ int main ()
     InsertEnd (&dllist, 40);
     InsertEnd (&dllist, 50);
     InsertEnd (&dllist, 60);
-    InsertAfter (&dllist, 2, 25);
-    InsertEnd (&dllist, 70);
-    DeleteElem (&dllist, 1);
     DeleteElem (&dllist, 2);
-    InsertBegin (&dllist, 5);
+    // InsertAfter (&dllist, 4, 45);
 
     DLListDump (dump_file, &dllist);
 
@@ -31,7 +28,7 @@ int main ()
 //-------------------------------------------------
 
 // TODO функция поиска по логическому индексу физического
-// TODO красивый дамп
+// TODO красивый дамп - сделано
 // TODO InsertEnd на основе - сделано
 // TODO prev нулевого указывает на последний - сделано
 // TODO next последнего на ноль - сделано
