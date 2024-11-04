@@ -53,22 +53,38 @@ dllist_error_t InsertAfter (dllist_t* dllist, int index_elem, list_elem_t insert
 {
     assert (dllist != NULL);
 
+    printf ("\n\n========== index_elem = %d ==========\n", index_elem);
+
     // кладём элемент в дату
+    printf ("---data---\n");
+    printf ("data[free = %d] = %d === insert_elem = %d \n", dllist->free, dllist->dllist_data[dllist->free], insert_elem);
     dllist->dllist_data[dllist->free] = insert_elem;
 
     // запоминаем следующий свободный элемент
+    printf ("---free_next---\n");
+    printf ("next_free === next[free = %d] = %d\n", dllist->free, dllist->next[dllist->free]);
     int next_free_temporary = dllist->next[dllist->free];
 
-    // корректируем массив prev
-    dllist->prev[dllist->next[dllist->free]] = dllist->free;
-    dllist->prev[next_free_temporary] = dllist->next[dllist->prev[dllist->free]];
-    dllist->prev[dllist->free] = index_elem;
-
     // корректируем массив next
+    printf ("---next---\n");
+    printf ("next[free = %d] = %d === next[index_elem = %d] = %d \n", dllist->free, dllist->next[dllist->free], index_elem, dllist->next[index_elem]);
     dllist->next[dllist->free] = dllist->next[index_elem];
+
+    printf ("next[index_elem = %d] = %d === free = %d \n", index_elem, dllist->next[index_elem], dllist->free);
     dllist->next[index_elem]   = dllist->free;
 
+    // корректируем массив prev
+    printf ("---prev---\n");
+    printf ("prev[next[free = %d] = %d] = %d === free = %d\n", dllist->free, dllist->next[dllist->free], dllist->prev[dllist->next[dllist->free]], dllist->free);
+    // если вставляем в конец, то изменяется prev[0], иначе - изменяется prev[next[free]]]
+    dllist->prev[dllist->next[dllist->free]] = dllist->free;
+    printf ("prev[free = %d] = %d === index_elem = %d \n", dllist->free, dllist->prev[dllist->free], index_elem);
+    dllist->prev[dllist->free] = index_elem;
+    printf ("prev[free_next = %d] = %d === prev[free = %d] = %d \n", next_free_temporary, dllist->prev[next_free_temporary], dllist->free, dllist->prev[dllist->free]);
+    dllist->prev[next_free_temporary] = dllist->prev[0];
+
     // изменяем free
+    printf ("free = %d === free_next = %d", dllist->free, next_free_temporary);
     dllist->free = next_free_temporary;
 
     return OK;
