@@ -117,6 +117,18 @@ int DLListNext (dllist_t* dllist, int elem_index)
 
 //-------------------------------------------------
 
+int FindRealIndex (dllist_t* dllist, int elem_index)
+{
+    assert (dllist != NULL);
+
+    int real_index = 0;
+    for (int i = 0; i < elem_index; ++i)
+        real_index = dllist->next[real_index];
+    return real_index;
+}
+
+//-------------------------------------------------
+
 void DLListDump (FILE* dump_file, dllist_t* dllist)
 {
     assert (dump_file != NULL);
@@ -129,7 +141,8 @@ void DLListDump (FILE* dump_file, dllist_t* dllist)
     fprintf (dump_file, "digraph G\n");
     fprintf (dump_file, "{\n");
     fprintf (dump_file, "splines=ortho;\n");
-    fprintf (dump_file, "node[shape=\"Mrecord\", style=\"rounded, filled\"];\n\n");
+    fprintf (dump_file, "nodesep=0.5;\n"); // расстояние между ячейками
+    fprintf (dump_file, "node[shape=\"record\", style=\"rounded, filled\"];\n\n");
 
     fprintf (dump_file, "free[label = \"free = %d\", style=\"rounded,filled\", fillcolor = " TITLE_COLOR "]\n", dllist->free);
     fprintf (dump_file, "head[label = \"head = %d\", style=\"rounded,filled\", fillcolor = " TITLE_COLOR "]\n", dllist->head);
@@ -147,14 +160,22 @@ void DLListDump (FILE* dump_file, dllist_t* dllist)
 
     // соединяем невидимыми линиями
     for (int i = 0; i < LIST_SIZE; ++i)
-        fprintf (dump_file, "%d->%d [weight = 5000, style=invis]\n", i, i + 1);
+        fprintf (dump_file, "%d->%d [weight = 5000, style=invis]; \n", i, i + 1);
     fprintf (dump_file, "\n");
 
     // соединяем стрелками next
     for (int i = 0; i < LIST_SIZE + 1; ++i)
     {
         if (dllist->next[i] != 0)
-            fprintf (dump_file, "%d->%d \n", i, dllist->next[i]);
+            fprintf (dump_file, "%d->%d [weight = 0, color = blueviolet];\n", i, dllist->next[i]);
+    }
+    fprintf (dump_file, "\n");
+
+    // соединяем стрелками prev
+    for (int i = LIST_SIZE; i >= 0; --i)
+    {
+        if (dllist->next[i] != 0)
+            fprintf (dump_file, "%d->%d [weight = 0, color = deeppink];\n", dllist->next[i], i);
     }
     fprintf (dump_file, "\n");
 

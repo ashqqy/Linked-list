@@ -17,8 +17,14 @@ int main ()
     InsertEnd (&dllist, 40);
     InsertEnd (&dllist, 50);
     InsertEnd (&dllist, 60);
+    InsertAfter (&dllist, 2, 25);
     DeleteElem (&dllist, 2);
-    // InsertAfter (&dllist, 4, 45);
+
+    int next_3 = DLListNext (&dllist, 3);
+    printf ("next_3 = %d\n", next_3);
+
+    int real_ind_2 = FindRealIndex (&dllist, 2);
+    printf ("real_ind_2 = %d\n", real_ind_2);
 
     DLListDump (dump_file, &dllist);
 

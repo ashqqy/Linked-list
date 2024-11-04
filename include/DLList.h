@@ -34,6 +34,7 @@ dllist_error_t InsertEnd (dllist_t* dllist, list_elem_t insert_elem);
 dllist_error_t DeleteElem (dllist_t* dllist, int index_elem);
 
 int DLListNext (dllist_t* dllist, int elem_index);
+int FindRealIndex (dllist_t* dllist, int elem_index);
 
 void DLListDump (FILE* dump_file, dllist_t* dllist);
 
