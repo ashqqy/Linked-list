@@ -4,18 +4,18 @@ splines=ortho;
 nodesep=0.5;
 node[shape="record", style="rounded, filled"];
 
-free[label = "free = 2", style="rounded,filled", fillcolor = "lightblue"]
+free[label = "free = 8", style="rounded,filled", fillcolor = "lightblue"]
 head[label = "head = 1", style="rounded,filled", fillcolor = "lightblue"]
 tail[label = "tail = 6", style="rounded,filled", fillcolor = "lightblue"]
 0[label = "{ <i>0|<d>data = 0|<n>next = 1|<p>prev = 6 }", fillcolor ="lightblue"];
-1[label = "{ <i>1|<d>data = 10|<n>next = 7|<p>prev = 0 }", fillcolor = "coral"];
-2[label = "{ <i>2|<d>data = -1|<n>next = 8|<p>prev = 6 }", fillcolor = "coral"];
+1[label = "{ <i>1|<d>data = 10|<n>next = 2|<p>prev = 0 }", fillcolor = "coral"];
+2[label = "{ <i>2|<d>data = 20|<n>next = 7|<p>prev = 1 }", fillcolor = "coral"];
 3[label = "{ <i>3|<d>data = 30|<n>next = 4|<p>prev = 7 }", fillcolor = "coral"];
 4[label = "{ <i>4|<d>data = 40|<n>next = 5|<p>prev = 3 }", fillcolor = "coral"];
 5[label = "{ <i>5|<d>data = 50|<n>next = 6|<p>prev = 4 }", fillcolor = "coral"];
 6[label = "{ <i>6|<d>data = 60|<n>next = 0|<p>prev = 5 }", fillcolor = "coral"];
-7[label = "{ <i>7|<d>data = 25|<n>next = 3|<p>prev = 1 }", fillcolor = "coral"];
-8[label = "{ <i>8|<d>data = -1|<n>next = 9|<p>prev = 2 }", fillcolor = "coral"];
+7[label = "{ <i>7|<d>data = 25|<n>next = 3|<p>prev = 2 }", fillcolor = "coral"];
+8[label = "{ <i>8|<d>data = -1|<n>next = 9|<p>prev = 6 }", fillcolor = "coral"];
 9[label = "{ <i>9|<d>data = -1|<n>next = 10|<p>prev = 8 }", fillcolor = "coral"];
 10[label = "{ <i>10|<d>data = -1|<n>next = 0|<p>prev = 9 }", fillcolor = "coral"];
 
@@ -32,8 +32,8 @@ tail[label = "tail = 6", style="rounded,filled", fillcolor = "lightblue"]
 9->10 [weight = 5000, style=invis]; 
 
 0->1 [weight = 0, color = blueviolet];
-1->7 [weight = 0, color = blueviolet];
-2->8 [weight = 0, color = blueviolet];
+1->2 [weight = 0, color = blueviolet];
+2->7 [weight = 0, color = blueviolet];
 3->4 [weight = 0, color = blueviolet];
 4->5 [weight = 0, color = blueviolet];
 5->6 [weight = 0, color = blueviolet];
@@ -47,12 +47,11 @@ tail[label = "tail = 6", style="rounded,filled", fillcolor = "lightblue"]
 6->5 [weight = 0, color = deeppink];
 5->4 [weight = 0, color = deeppink];
 4->3 [weight = 0, color = deeppink];
-8->2 [weight = 0, color = deeppink];
-7->1 [weight = 0, color = deeppink];
+7->2 [weight = 0, color = deeppink];
+2->1 [weight = 0, color = deeppink];
 1->0 [weight = 0, color = deeppink];
 
-free->2;
-2[fillcolor = "lightgreen"];
+free->8;
 8[fillcolor = "lightgreen"];
 9[fillcolor = "lightgreen"];
 10[fillcolor = "lightgreen"];
