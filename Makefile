@@ -1,4 +1,4 @@
-FLAGS = -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-loop-optimizations 			\
+# FLAGS = -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-loop-optimizations 			\
 		-Wc++14-compat -Wmissing-declarations -Wdeprecated -Wcast-align -Wcast-qual -Wchar-subscripts 	\
 		-Wconditionally-supported -Wconversion -Wctor-dtor-privacy -Wempty-body -Wfloat-equal 			\
 		-Wformat-nonliteral -Wformat-security -Wformat-signedness -Wformat=2 -Winline -Wlogical-op 		\
@@ -15,7 +15,7 @@ FLAGS = -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-loop
 all: built run
 
 built:
-	g++ -I./include ./src/main.c ./src/LinkedList.c -o main $(FLAGS)
+	gcc -I./include ./src/main.c ./src/LinkedList.c -o main $(FLAGS)
 
 run:
 	./main

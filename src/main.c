@@ -12,21 +12,33 @@ int main ()
     FILE* dump_file = fopen ("./dump/dump.dot", "w");
 
     list_t list = {};
-    ListInit (&list);
+    ListInit (&list, 10, sizeof (int));
 
-    InsertEnd (&list, 10);
-    InsertEnd (&list, 20);
-    InsertEnd (&list, 30);
-    InsertEnd (&list, 40);
-    InsertEnd (&list, 50);
-    InsertEnd (&list, 60);
-    InsertAfter (&list, 2, 25);
-    // DeleteElem (&list, 2);
+    int insert_elem = 10;
+    ListInsertEnd (&list, &insert_elem);
+    insert_elem += 1;
+    ListInsertEnd (&list, &insert_elem);
+
+    ListDeleteElem (&list, 0);
+    insert_elem += 1;
+    ListInsertEnd (&list, &insert_elem);
+    insert_elem += 1;
+    ListInsertAfter (&list, 1, &insert_elem);
+    insert_elem += 1;
+    ListInsertEnd (&list, &insert_elem);insert_elem += 1;
+    ListInsertEnd (&list, &insert_elem);insert_elem += 1;
+    ListInsertEnd (&list, &insert_elem);insert_elem += 1;
+    ListInsertEnd (&list, &insert_elem);insert_elem += 1;
+    ListInsertEnd (&list, &insert_elem);insert_elem += 1;
+    ListInsertEnd (&list, &insert_elem);insert_elem += 1;
+    ListInsertEnd (&list, &insert_elem);insert_elem += 1;
+    ListDeleteElem (&list, 6);
+
 
     // int next_3 = listNext (&list, 3);
     // printf ("next_3 = %d\n", next_3);
 
-    // int real_ind_2 = FindRealIndex (&list, 2);
+    // int real_ind_2 = ListFindRealIndex (&list, 2);
     // printf ("real_ind_2 = %d\n", real_ind_2);
 
     ListDump (dump_file, &list);
@@ -34,6 +46,8 @@ int main ()
     fclose(dump_file);
 
     system (DUMP_COMMAND);
+
+    ListDestroy (&list);
 }
 
 //-------------------------------------------------

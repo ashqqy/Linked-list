@@ -3,16 +3,14 @@
 
 //-------------------------------------------------
 
-typedef int list_elem_t;
-
-const int LIST_SIZE = 10;
-const int LIST_END  = 0;
-
 typedef struct
 {
-    list_elem_t data[LIST_SIZE + 1]; // +1 для нуля - конца последовательности
-    int next[LIST_SIZE + 1];
-    int prev[LIST_SIZE + 1];
+    void* data;
+    int* next;
+    int* prev;
+    int elem_size;
+    int size;
+    int capacity;
     int free;
     int head;
     int tail;
@@ -20,17 +18,21 @@ typedef struct
 
 //-------------------------------------------------
 
-void ListInit (list_t* list);
+void ListInit (list_t* list, int capacity, int elem_size);
+void ListDestroy (list_t* list);
 
-void InsertAfter (list_t* list, int index_elem, list_elem_t insert_elem);
-void InsertBegin (list_t* list, list_elem_t insert_elem);
-void InsertEnd (list_t* list, list_elem_t insert_elem);
-void DeleteElem (list_t* list, int index_elem);
+void ListInsertAfter (list_t* list, int target_index, void* insert_data);
+void ListInsertBegin (list_t* list, void* insert_data);
+void ListInsertEnd (list_t* list, void* insert_data);
+void ListDeleteElem (list_t* list, int target_index);
 
-int ListNext (list_t* list, int elem_index);
-int FindRealIndex (list_t* list, int elem_index);
+void ListResize (list_t* list, int new_capacity);
+void* CustomRecalloc (void* memory, size_t new_capacity, size_t elem_size, size_t previous_capacity, const void* poison);
 
-void ListDump (FILE* dump_file, list_t* list);
+int ListNext (list_t* list, int target_index);
+int ListFindRealIndex (list_t* list, int target_index);
+
+void ListDump (FILE* dump_file, const list_t* list);
 
 //-------------------------------------------------
 
