@@ -5,6 +5,8 @@
 
 #include "LinkedList.h"
 
+const int INSERT_BEFORE_HEAD = -1;
+
 //-------------------------------------------------
 
 #define CUSTOM_ASSERT(expression) do                                                                             \
@@ -25,6 +27,8 @@ while (0)
 void ListInit (list_t* list, int capacity, int elem_size)
 {
     assert (list != NULL);
+    assert (capacity >= 0);
+    assert (elem_size >= 0);
 
     list->data = calloc ((size_t) capacity, (size_t) elem_size);
     CUSTOM_ASSERT (list->data != NULL);
@@ -68,6 +72,8 @@ void ListDestroy (list_t* list)
 void ListInsertAfter (list_t* list, int target_index, void* insert_data)
 {
     assert (list != NULL);
+    assert (insert_data != NULL);
+    assert ((target_index >= 0) || (target_index == INSERT_BEFORE_HEAD));
 
     if (list->size == list->capacity - 1)
     {
@@ -80,18 +86,35 @@ void ListInsertAfter (list_t* list, int target_index, void* insert_data)
     int next_free = list->next[list->free];
 
     if (target_index == list->tail)
+    {
         list->tail = insert_data_index;
+    }
 
     // Restore ring buffer in the list of free elements
     list->prev[next_free] = list->prev[list->free];
     list->next[list->prev[list->free]] = next_free;
 
-    // Configure the connection in a new element
-    list->next[insert_data_index] = list->next[target_index];
-    list->next[target_index]      = insert_data_index;
+    // for ListInsertBegin
+    if (target_index == INSERT_BEFORE_HEAD)
+    {
+        list->next[insert_data_index] = list->head;
+        list->prev[insert_data_index] = list->prev[list->head];
 
-    list->prev[list->next[insert_data_index]] = insert_data_index;
-    list->prev[insert_data_index]             = target_index;
+        list->prev[list->head] = insert_data_index;
+
+        list->head = insert_data_index;
+        list->next[list->tail] = list->head;
+    }
+
+    else
+    {
+        // Configure the connection in a new element
+        list->next[insert_data_index] = list->next[target_index];
+        list->next[target_index]      = insert_data_index;
+
+        list->prev[list->next[insert_data_index]] = insert_data_index;
+        list->prev[insert_data_index]             = target_index;
+    }
 
     list->free = next_free;
     list->size += 1;
@@ -100,16 +123,17 @@ void ListInsertAfter (list_t* list, int target_index, void* insert_data)
 void ListInsertEnd (list_t* list, void* insert_data)
 {
     assert (list != NULL);
+    assert (insert_data != NULL);
 
     ListInsertAfter (list, list->tail, insert_data);
 }
 
-// TODO
 void ListInsertBegin (list_t* list, void* insert_data)
 {
     assert (list != NULL);
+    assert (insert_data != NULL);
 
-    ListInsertAfter (list, -1, insert_data);
+    ListInsertAfter (list, INSERT_BEFORE_HEAD, insert_data);
 }
 
 //-------------------------------------------------
@@ -117,13 +141,17 @@ void ListInsertBegin (list_t* list, void* insert_data)
 void ListResize (list_t* list, int new_capacity)
 {
     assert (list != NULL);
+    assert (new_capacity >= 0);
 
     int old_capacity = list->capacity;
     list->capacity = new_capacity;
 
-    list->data = (int*) CustomRecalloc (list->data, (size_t) new_capacity, (size_t) list->elem_size, (size_t) old_capacity, NULL);
-    list->next = (int*) CustomRecalloc (list->next, (size_t) new_capacity, (size_t) list->elem_size, (size_t) old_capacity, NULL);
-    list->prev = (int*) CustomRecalloc (list->prev, (size_t) new_capacity, (size_t) list->elem_size, (size_t) old_capacity, NULL);
+    list->data = (int*) ListRecalloc (list->data, (size_t) new_capacity, (size_t) list->elem_size, (size_t) old_capacity, NULL);
+    CUSTOM_ASSERT (list->data != NULL);
+    list->next = (int*) ListRecalloc (list->next, (size_t) new_capacity, (size_t) list->elem_size, (size_t) old_capacity, NULL);
+    CUSTOM_ASSERT (list->next != NULL);
+    list->prev = (int*) ListRecalloc (list->prev, (size_t) new_capacity, (size_t) list->elem_size, (size_t) old_capacity, NULL);
+    CUSTOM_ASSERT (list->prev != NULL);
 
     for (int i = list->free; i < new_capacity; ++i)
     {
@@ -144,7 +172,7 @@ void ListResize (list_t* list, int new_capacity)
     list->next[new_capacity - 1] = list->free;
 }
 
-void* CustomRecalloc (void* memory, size_t new_capacity, size_t elem_size, size_t previous_capacity, const void* poison)
+void* ListRecalloc (void* memory, size_t new_capacity, size_t elem_size, size_t previous_capacity, const void* poison)
 {   
     if (memory == NULL)
         return NULL;
@@ -169,6 +197,7 @@ void* CustomRecalloc (void* memory, size_t new_capacity, size_t elem_size, size_
             for (size_t i = 0; i < new_capacity - previous_capacity; i++)
                 memcpy(((char*) memory + (previous_capacity + i) * elem_size), poison, elem_size);
         }
+
         else
         {
             memset ((char*) memory + previous_capacity * elem_size, 0, (new_capacity - previous_capacity) * elem_size);
@@ -183,6 +212,7 @@ void* CustomRecalloc (void* memory, size_t new_capacity, size_t elem_size, size_
 void ListDeleteElem (list_t* list, int target_index)
 {
     assert (list != NULL);
+    assert (target_index >= 0);
 
     memset (GET_BY_INDEX (list->data, target_index, list->elem_size), 0, (size_t) list->elem_size);
 
@@ -216,19 +246,26 @@ void ListDeleteElem (list_t* list, int target_index)
 int ListNext (list_t* list, int target_index)
 {
     assert (list != NULL);
+    assert ((target_index >= 0) && (target_index < list->size));
 
     return list->next[target_index];
 }
 
 //-------------------------------------------------
 
-int ListFindRealIndex (list_t* list, int target_index)
+int ListLogicalToPhysicalIndex (list_t* list, int target_index) 
 {
-    assert (list != NULL);
-
-    int real_index = 0;
-    for (int i = 0; i < target_index; ++i)
+    assert(list != NULL);
+    assert ((target_index >= 0) && (target_index < list->size));
+    
+    int real_index = list->head;
+    int current_pos = 0;
+    
+    while (current_pos < target_index)
+    {
         real_index = list->next[real_index];
+        current_pos++;
+    }
 
     return real_index;
 }
@@ -257,40 +294,41 @@ void ListDump (FILE* dump_file, const list_t* list)
     fprintf (dump_file, "title[label = \"{ capacity = %d | size = %d | elem_size = %d }\", style=\"rounded,filled\", fillcolor = " TITLE_COLOR "];\n", \
         list->capacity, list->size, list->elem_size);
 
+    // Create nodes for all elements
     for (int i = 0; i < list->capacity; ++i)
         fprintf (dump_file, "%d[label = \"{ <i>%d|<d>data = %d|<n>next = %d|<p>prev = %d }\", fillcolor = " BUSY_COLOR "];\n", \
             i, i, *(int*) GET_BY_INDEX (list->data, i, list->elem_size), list->next[i], list->prev[i]);
 
     fprintf (dump_file, "\n");
 
-    // выстраиваем ячейки в строчку
+    // Align all nodes horizontally
     fprintf (dump_file, "{ rank = same; ");
     for (int i = 0 ; i < list->capacity; ++i)
         fprintf (dump_file, "%d; ", i);
 
     fprintf (dump_file, "}\n");
 
-    // соединяем невидимыми линиями
+    // Connect nodes with invisible edges for proper alignment
     for (int i = 0; i < list->capacity - 1; ++i)
         fprintf (dump_file, "%d->%d [weight = 5000, style=invis]; \n", i, i + 1);
 
     fprintf (dump_file, "\n");
 
-    // соединяем стрелками next
+    // Draw next pointers (purple arrows)
     for (int i = 0; i < list->capacity; ++i)
         if ((list->next[i] != list->head) && (list->next[i] != list->free)) // do not draw non-informative arrows
             fprintf (dump_file, "%d->%d [weight = 0, color = blueviolet];\n", i, list->next[i]);
 
     fprintf (dump_file, "\n");
 
-    // соединяем стрелками prev
+    // Draw prev pointers (pink arrows)
     for (int i = list->capacity - 1; i >= 0; --i)
         if ((list->prev[i] != list->tail) && (i != list->free)) // do not draw non-informative arrows
             fprintf (dump_file, "%d->%d [weight = 0, color = deeppink];\n", i, list->prev[i]);
 
     fprintf (dump_file, "\n");
 
-    // красим свободные ячейки в зеленый
+    // Color free nodes green
     fprintf (dump_file, "free->%d;\n", list->free);
     int free_block = list->free;
     for (int i = list->size; i < list->capacity; ++i)
@@ -299,7 +337,7 @@ void ListDump (FILE* dump_file, const list_t* list)
         free_block = list->next[free_block];
     }
 
-    // указываем на head и tail
+    // Point head and tail to their elements
     fprintf (dump_file, "head->%d;\n", list->head);
     fprintf (dump_file, "tail->%d;\n", list->tail);
 

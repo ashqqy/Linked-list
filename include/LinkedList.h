@@ -27,10 +27,10 @@ void ListInsertEnd (list_t* list, void* insert_data);
 void ListDeleteElem (list_t* list, int target_index);
 
 void ListResize (list_t* list, int new_capacity);
-void* CustomRecalloc (void* memory, size_t new_capacity, size_t elem_size, size_t previous_capacity, const void* poison);
+void* ListRecalloc (void* memory, size_t new_capacity, size_t elem_size, size_t previous_capacity, const void* poison);
 
 int ListNext (list_t* list, int target_index);
-int ListFindRealIndex (list_t* list, int target_index);
+int ListLogicalToPhysicalIndex (list_t* list, int target_index);
 
 void ListDump (FILE* dump_file, const list_t* list);
 
