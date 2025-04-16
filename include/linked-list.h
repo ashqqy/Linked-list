@@ -1,13 +1,17 @@
 #ifndef LINKED_LIST_H
 #define LINKED_LIST_H
 
+#include <stdio.h>
+
 //-------------------------------------------------
 
 typedef struct
 {
     void* data;
     int* next;
+    #ifdef DOUBLY_LINKED_LIST
     int* prev;
+    #endif
     int elem_size;
     int size;
     int capacity;

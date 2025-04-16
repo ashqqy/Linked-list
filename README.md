@@ -5,12 +5,13 @@
 **Компиляция:**  
 
 Двусвязный список:
-`g++ -DDOUBLY_LINKED_LIST -I./include ./src/main.c ./src/LinkedList.c -o main`  
+
+`make CXXFLAGS=-DDOUBLY_LINKED_LIST`
 
 Односвязный список:
-`g++ -I./include ./src/main.c ./src/LinkedList.c -o main`  
+`make`
 
-**Запуск:** `./main`  
+**Запуск:** `make run`
 
 ## Описание
 
@@ -35,7 +36,17 @@
 Подразумевается, что .dot файл находится в папке dump.
 
 Пример использования списка (см. файл ./src/main.c):
-<img src="./img/use-example.png" alt="Пример использования">
+```c
+list_t list = {};
+ListInit (&list, 10, sizeof (int));
+
+int insert_elem = 10;
+ListInsertEnd (&list, &insert_elem);
+insert_elem -= 2;
+ListInsertBegin (&list, &insert_elem);
+insert_elem += 1;
+ListInsertAfter (&list, ListLogicalToPhysicalIndex (&list, 0), &insert_elem);
+```
 
 Для кода сверху дамп будет выглядеть следующим образом
 
