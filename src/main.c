@@ -7,6 +7,7 @@ static const char* DUMP_COMMAND = "dot ./dump/dump.dot -Tpng -o ./dump/dump.png"
 
 //-------------------------------------------------
 
+// Example from Readme
 int main ()
 {
     system ("mkdir dump");
@@ -28,5 +29,3 @@ int main ()
 
     ListDestroy (&list);
 }
-
-//-------------------------------------------------

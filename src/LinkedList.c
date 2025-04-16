@@ -5,8 +5,6 @@
 
 #include "LinkedList.h"
 
-const int INSERT_BEFORE_HEAD = -1;
-
 //-------------------------------------------------
 
 #define CUSTOM_ASSERT(expression) do                                                                             \
@@ -22,157 +20,12 @@ while (0)
 
 #define GET_BY_INDEX(array, index, elem_size) ((char*) (array) + (index) * (elem_size))
 
-//-------------------------------------------------
-
-void ListInit (list_t* list, int capacity, int elem_size)
-{
-    assert (list != NULL);
-    assert (capacity >= 0);
-    assert (elem_size >= 0);
-
-    list->data = calloc ((size_t) capacity, (size_t) elem_size);
-    CUSTOM_ASSERT (list->data != NULL);
-    list->next = (int*) calloc ((size_t) capacity, sizeof (int));
-    CUSTOM_ASSERT (list->next != NULL);
-    list->prev = (int*) calloc ((size_t) capacity, sizeof (int));
-    CUSTOM_ASSERT (list->prev != NULL);
-
-    list->next[0] = 1;
-    list->prev[0] = capacity - 1;
-
-    for (int i = 1; i < capacity; ++i)
-    {
-        list->next[i] = i + 1;
-        list->prev[i] = i - 1;
-    }
-
-    list->next[capacity - 1] = 0;
-
-    list->elem_size = elem_size;
-    list->size = 0;
-    list->capacity = capacity;
-    list->free = 0;
-    list->head = 0;
-    list->tail = 0;
-}
-
-void ListDestroy (list_t* list)
-{
-    assert (list != NULL);
-
-    free (list->data); list->data = NULL;
-    free (list->next); list->next = NULL;
-    free (list->prev); list->prev = NULL;
-
-    memset (list, 0, sizeof (list_t));
-}
 
 //-------------------------------------------------
 
-void ListInsertAfter (list_t* list, int target_index, void* insert_data)
-{
-    assert (list != NULL);
-    assert (insert_data != NULL);
-    assert ((target_index >= 0) || (target_index == INSERT_BEFORE_HEAD));
+static const int INSERT_BEFORE_HEAD = -1;
 
-    if (list->size == list->capacity - 1)
-    {
-        ListResize (list, list->capacity * 2);
-    }
-
-    memcpy (GET_BY_INDEX (list->data, list->free, list->elem_size), insert_data, (size_t) list->elem_size);
-
-    int insert_data_index = list->free;
-    int next_free = list->next[list->free];
-
-    if (target_index == list->tail)
-    {
-        list->tail = insert_data_index;
-    }
-
-    // Restore ring buffer in the list of free elements
-    list->prev[next_free] = list->prev[list->free];
-    list->next[list->prev[list->free]] = next_free;
-
-    // for ListInsertBegin
-    if (target_index == INSERT_BEFORE_HEAD)
-    {
-        list->next[insert_data_index] = list->head;
-        list->prev[insert_data_index] = list->prev[list->head];
-
-        list->prev[list->head] = insert_data_index;
-
-        list->head = insert_data_index;
-        list->next[list->tail] = list->head;
-    }
-
-    else
-    {
-        // Configure the connection in a new element
-        list->next[insert_data_index] = list->next[target_index];
-        list->next[target_index]      = insert_data_index;
-
-        list->prev[list->next[insert_data_index]] = insert_data_index;
-        list->prev[insert_data_index]             = target_index;
-    }
-
-    list->free = next_free;
-    list->size += 1;
-}
-
-void ListInsertEnd (list_t* list, void* insert_data)
-{
-    assert (list != NULL);
-    assert (insert_data != NULL);
-
-    ListInsertAfter (list, list->tail, insert_data);
-}
-
-void ListInsertBegin (list_t* list, void* insert_data)
-{
-    assert (list != NULL);
-    assert (insert_data != NULL);
-
-    ListInsertAfter (list, INSERT_BEFORE_HEAD, insert_data);
-}
-
-//-------------------------------------------------
-
-void ListResize (list_t* list, int new_capacity)
-{
-    assert (list != NULL);
-    assert (new_capacity >= 0);
-
-    int old_capacity = list->capacity;
-    list->capacity = new_capacity;
-
-    list->data = (int*) ListRecalloc (list->data, (size_t) new_capacity, (size_t) list->elem_size, (size_t) old_capacity, NULL);
-    CUSTOM_ASSERT (list->data != NULL);
-    list->next = (int*) ListRecalloc (list->next, (size_t) new_capacity, (size_t) list->elem_size, (size_t) old_capacity, NULL);
-    CUSTOM_ASSERT (list->next != NULL);
-    list->prev = (int*) ListRecalloc (list->prev, (size_t) new_capacity, (size_t) list->elem_size, (size_t) old_capacity, NULL);
-    CUSTOM_ASSERT (list->prev != NULL);
-
-    for (int i = list->free; i < new_capacity; ++i)
-    {
-        list->next[i] = i + 1;
-        list->prev[i] = i - 1;
-    }
-
-    list->next[list->free] = old_capacity;
-    list->prev[list->free] = new_capacity - 1;
-
-    for (int i = list->next[list->free] + 1; i < new_capacity; ++i)
-    {
-        list->next[i] = i + 1;
-        list->prev[i] = i - 1;
-    }
-
-    list->prev[list->next[list->free]] = list->free;
-    list->next[new_capacity - 1] = list->free;
-}
-
-void* ListRecalloc (void* memory, size_t new_capacity, size_t elem_size, size_t previous_capacity, const void* poison)
+static void* ListRecalloc (void* memory, size_t new_capacity, size_t elem_size, size_t previous_capacity, const void* poison)
 {   
     if (memory == NULL)
         return NULL;
@@ -209,47 +62,314 @@ void* ListRecalloc (void* memory, size_t new_capacity, size_t elem_size, size_t 
 
 //-------------------------------------------------
 
-void ListDeleteElem (list_t* list, int target_index)
+void ListInit (list_t* list, int capacity, int elem_size)
 {
     assert (list != NULL);
-    assert (target_index >= 0);
+    assert (capacity > 0);
+    assert (elem_size > 0);
 
-    memset (GET_BY_INDEX (list->data, target_index, list->elem_size), 0, (size_t) list->elem_size);
+    list->data = calloc ((size_t) capacity, (size_t) elem_size);
+    CUSTOM_ASSERT (list->data != NULL);
 
-    if (target_index == list->head)
-        list->head = list->next[list->head];
-    if (target_index == list->tail)
-        list->tail = list->prev[list->tail];
+    list->next = (int*) calloc ((size_t) capacity, sizeof (int));
+    CUSTOM_ASSERT (list->next != NULL);
 
-    int next_index = list->next[target_index];
-    int prev_index = list->prev[target_index];
+    #ifdef DOUBLY_LINKED_LIST
+    list->prev = (int*) calloc ((size_t) capacity, sizeof (int));
+    CUSTOM_ASSERT (list->prev != NULL);
+    #endif
 
-    // Update links in main list
-    list->next[prev_index] = next_index;
-    list->prev[next_index] = prev_index;
+    list->next[0] = 1;
 
-    // Add element to the list of free elements
-    int old_free = list->free;
-    list->free = target_index;
-    list->next[target_index] = old_free;
-    list->prev[target_index] = list->prev[old_free];
+    #ifdef DOUBLY_LINKED_LIST
+    list->prev[0] = capacity - 1;
+    #endif
 
-    // Update links in list of free elements
-    list->next[list->prev[old_free]] = target_index;
-    list->prev[old_free] = target_index;
+    for (int i = 1; i < capacity; ++i)
+    {
+        list->next[i] = i + 1;
 
-    list->size -= 1;
+        #ifdef DOUBLY_LINKED_LIST
+        list->prev[i] = i - 1;
+        #endif
+    }
+
+    list->next[capacity - 1] = 0;
+
+    list->elem_size = elem_size;
+    list->size = 0;
+    list->capacity = capacity;
+    list->free = 0;
+    list->head = -1;
+    list->tail = -1;
+}
+
+void ListDestroy (list_t* list)
+{
+    assert (list != NULL);
+
+    free (list->data); list->data = NULL;
+    free (list->next); list->next = NULL;
+
+    #ifdef DOUBLY_LINKED_LIST
+    free (list->prev); list->prev = NULL;
+    #endif
+
+    memset (list, 0, sizeof (list_t));
 }
 
 //-------------------------------------------------
 
-int ListNext (list_t* list, int target_index)
+void ListInsertAfter (list_t* list, int target_index, void* insert_data)
 {
     assert (list != NULL);
-    assert ((target_index >= 0) && (target_index < list->size));
+    assert (insert_data != NULL);
+    assert (((target_index >= 0) && (target_index < list->capacity)) || (target_index == INSERT_BEFORE_HEAD));
+
+    if (list->size == list->capacity - 1)
+    {
+        ListResize (list, list->capacity * 2);
+    }
+
+    int insert_data_index = list->free;
+    int next_free = list->next[list->free];
+    #ifdef DOUBLY_LINKED_LIST
+    #else
+    int last_free = ListFindPrevFree (list, list->free);
+    #endif
+
+    memcpy (GET_BY_INDEX (list->data, insert_data_index, list->elem_size), insert_data, (size_t) list->elem_size);
+
+    if ((target_index == list->tail) || (list->tail == -1))
+    {
+        list->tail = insert_data_index;
+    }
+
+    if (list->head == -1)
+    {
+        list->head = insert_data_index;
+    }
+
+    // for ListInsertBegin
+    //  Insert after tail and change head (works because the list is circular)
+    if (target_index == INSERT_BEFORE_HEAD)
+    {
+        target_index = list->tail;
+        list->head = insert_data_index;
+    }
+
+    // Restore ring buffer in the list of free elements (only double-linked list)
+    #ifdef DOUBLY_LINKED_LIST
+    list->prev[next_free] = list->prev[list->free];
+    list->next[list->prev[list->free]] = next_free;
+    #else 
+    list->next[last_free] = next_free;
+    #endif
+
+    // Configure the connection in a new element
+    list->next[insert_data_index] = list->next[target_index];
+    list->next[target_index]      = insert_data_index;
+
+    #ifdef DOUBLY_LINKED_LIST
+    list->prev[list->next[insert_data_index]] = insert_data_index;
+    list->prev[insert_data_index]             = target_index;
+    #endif
+
+    list->free = next_free;
+    list->size += 1;
+}
+
+void ListInsertEnd (list_t* list, void* insert_data)
+{
+    assert (list != NULL);
+    assert (insert_data != NULL);
+
+    ListInsertAfter (list, list->tail, insert_data);
+}
+
+void ListInsertBegin (list_t* list, void* insert_data)
+{
+    assert (list != NULL);
+    assert (insert_data != NULL);
+
+    ListInsertAfter (list, INSERT_BEFORE_HEAD, insert_data);
+}
+
+//-------------------------------------------------
+
+void ListResize (list_t* list, int new_capacity)
+{
+    assert (list != NULL);
+    assert (new_capacity >= 0);
+
+    int old_capacity = list->capacity;
+    list->capacity = new_capacity;
+
+    list->data = (int*) ListRecalloc (list->data, (size_t) new_capacity, (size_t) list->elem_size, (size_t) old_capacity, NULL);
+    CUSTOM_ASSERT (list->data != NULL);
+
+    list->next = (int*) ListRecalloc (list->next, (size_t) new_capacity, (size_t) list->elem_size, (size_t) old_capacity, NULL);
+    CUSTOM_ASSERT (list->next != NULL);
+
+    #ifdef DOUBLY_LINKED_LIST
+    list->prev = (int*) ListRecalloc (list->prev, (size_t) new_capacity, (size_t) list->elem_size, (size_t) old_capacity, NULL);
+    CUSTOM_ASSERT (list->prev != NULL);
+    #endif
+
+    for (int i = list->free; i < new_capacity; ++i)
+    {
+        list->next[i] = i + 1;
+        #ifdef DOUBLY_LINKED_LIST
+        list->prev[i] = i - 1;
+        #endif
+    }
+
+    list->next[list->free] = old_capacity;
+    #ifdef DOUBLY_LINKED_LIST
+    list->prev[list->free] = new_capacity - 1;
+    #endif
+
+    for (int i = list->next[list->free] + 1; i < new_capacity; ++i)
+    {
+        list->next[i] = i + 1;
+        #ifdef DOUBLY_LINKED_LIST
+        list->prev[i] = i - 1;
+        #endif
+    }
+
+    #ifdef DOUBLY_LINKED_LIST
+    list->prev[list->next[list->free]] = list->free;
+    #endif
+    list->next[new_capacity - 1] = list->free;
+}
+
+//-------------------------------------------------
+
+void ListDeleteElem (list_t* list, int target_index)
+{
+    assert (list != NULL);
+    assert ((target_index >= 0) && (target_index < list->capacity));
+
+    memset (GET_BY_INDEX (list->data, target_index, list->elem_size), 0, (size_t) list->elem_size);
+
+    if (target_index == list->head)
+    {
+        list->head = list->next[list->head];
+    }
+
+    if (target_index == list->tail)
+    {
+        #ifdef DOUBLY_LINKED_LIST
+        list->tail = list->prev[list->tail];
+        #else
+        list->tail = ListFindPrev (list, list->tail);
+        #endif
+    }
+
+    int next_index = list->next[target_index];
+    #ifdef DOUBLY_LINKED_LIST
+    int prev_index = list->prev[target_index];
+    #else
+    int prev_index = ListFindPrev (list, target_index);
+    CUSTOM_ASSERT ((prev_index != -1) && "Invalid target index for delete");
+    #endif
+
+    #ifdef DOUBLY_LINKED_LIST
+    int last_free = list->prev[list->free];
+    #else
+    int last_free = ListFindPrevFree (list, list->free);
+    #endif
+
+    int old_free = list->free;
+    list->free = target_index;
+
+    // Update links in main list
+    list->next[prev_index] = next_index;
+    #ifdef DOUBLY_LINKED_LIST
+    list->prev[next_index] = prev_index;
+    #endif
+
+    // Add element to the list of free elements
+    list->next[target_index] = old_free;
+    #ifdef DOUBLY_LINKED_LIST
+    list->prev[target_index] = last_free;
+    #endif
+
+    // Update links in list of free elements
+    list->next[last_free] = target_index;
+    #ifdef DOUBLY_LINKED_LIST
+    list->prev[old_free] = target_index;
+    #endif
+
+    list->size -= 1;
+
+    if (list->size == 0)
+    {
+        list->head = -1;
+        list->tail = -1;
+    }
+}
+
+//-------------------------------------------------
+
+int ListFindNext (list_t* list, int target_index)
+{
+    assert (list != NULL);
+    assert ((target_index >= 0) && (target_index < list->capacity));
 
     return list->next[target_index];
 }
+
+int ListFindPrev (list_t* list, int target_index)
+{
+    assert (list != NULL);
+    assert ((target_index >= 0) && (target_index < list->capacity));
+
+    #ifdef DOUBLY_LINKED_LIST
+    return list->prev[target_index];
+    #else // Singly-linked list
+    if (target_index == list->head) 
+    {
+        return list->tail;
+    }
+    
+    int current = list->head;
+    do 
+    {
+        if (list->next[current] == target_index) 
+        {
+            return current;
+        }
+
+    current = list->next[current];
+    } while (current != list->head);
+
+    return -1;
+    #endif // DOUBLY_LINKED_LIST
+}
+
+int ListFindPrevFree (list_t* list, int target_index)
+{
+    assert (list != NULL);
+    assert ((target_index >= 0) && (target_index < list->capacity));
+
+    #ifdef DOUBLY_LINKED_LIST
+    return list->prev[target_index];
+    #else // Singly-linked list
+    int current = list->free;
+    do
+    {
+        if (list->next[current] == target_index) 
+        {
+            return current;
+        }
+        current = list->next[current];
+    } while (current != list->free);
+
+    return -1;
+    #endif // DOUBLY_LINKED_LIST
+}
+
 
 //-------------------------------------------------
 
@@ -296,8 +416,15 @@ void ListDump (FILE* dump_file, const list_t* list)
 
     // Create nodes for all elements
     for (int i = 0; i < list->capacity; ++i)
+    {
+        #ifdef DOUBLY_LINKED_LIST
         fprintf (dump_file, "%d[label = \"{ <i>%d|<d>data = %d|<n>next = %d|<p>prev = %d }\", fillcolor = " BUSY_COLOR "];\n", \
             i, i, *(int*) GET_BY_INDEX (list->data, i, list->elem_size), list->next[i], list->prev[i]);
+        #else
+        fprintf (dump_file, "%d[label = \"{ <i>%d|<d>data = %d|<n>next = %d }\", fillcolor = " BUSY_COLOR "];\n", \
+            i, i, *(int*) GET_BY_INDEX (list->data, i, list->elem_size), list->next[i]);
+        #endif
+    }
 
     fprintf (dump_file, "\n");
 
@@ -321,10 +448,12 @@ void ListDump (FILE* dump_file, const list_t* list)
 
     fprintf (dump_file, "\n");
 
+    #ifdef DOUBLY_LINKED_LIST
     // Draw prev pointers (pink arrows)
     for (int i = list->capacity - 1; i >= 0; --i)
         if ((list->prev[i] != list->tail) && (i != list->free)) // do not draw non-informative arrows
             fprintf (dump_file, "%d->%d [weight = 0, color = deeppink];\n", i, list->prev[i]);
+    #endif
 
     fprintf (dump_file, "\n");
 
@@ -338,8 +467,10 @@ void ListDump (FILE* dump_file, const list_t* list)
     }
 
     // Point head and tail to their elements
-    fprintf (dump_file, "head->%d;\n", list->head);
-    fprintf (dump_file, "tail->%d;\n", list->tail);
+    if (list->head != -1)
+        fprintf (dump_file, "head->%d;\n", list->head);
+    if (list->tail != -1)
+        fprintf (dump_file, "tail->%d;\n", list->tail);
 
     fprintf (dump_file, "}\n");
 

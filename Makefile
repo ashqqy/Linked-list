@@ -12,10 +12,11 @@ FLAGS = -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-loop
 		-fno-omit-frame-pointer -pie -fPIE -Werror=vla 													\
 		-fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 
-all: built
-
-built:
+singly:
 	g++ -I./include ./src/main.c ./src/LinkedList.c -o main $(FLAGS)
+
+doubly:
+	g++ -DDOUBLY_LINKED_LIST -I./include ./src/main.c ./src/LinkedList.c -o main $(FLAGS)
 
 run:
 	./main
